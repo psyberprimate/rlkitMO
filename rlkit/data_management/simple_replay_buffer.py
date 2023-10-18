@@ -15,6 +15,8 @@ class SimpleReplayBuffer(ReplayBuffer):
         action_dim,
         env_info_sizes,
         replace = True,
+        reward_dim=2, # added for MORL
+        
     ):
         self._observation_dim = observation_dim
         self._action_dim = action_dim
@@ -27,7 +29,10 @@ class SimpleReplayBuffer(ReplayBuffer):
         self._actions = np.zeros((max_replay_buffer_size, action_dim))
         # Make everything a 2D np array to make it easier for other code to
         # reason about the shape of the data
-        self._rewards = np.zeros((max_replay_buffer_size, 1))
+        
+        #self._rewards = np.zeros((max_replay_buffer_size, 1)) # ORIGINAL FOR SORL
+        self._rewards = np.zeros((max_replay_buffer_size, reward_dim)) # FOR MORL
+        
         # self._terminals[i] = a terminal was received at time i
         self._terminals = np.zeros((max_replay_buffer_size, 1), dtype='uint8')
         # Define self._env_infos[key][i] to be the return value of env_info[key]
