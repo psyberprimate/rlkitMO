@@ -45,7 +45,7 @@ class SACTrainer(TorchTrainer):
     ):
         super().__init__()
         self.weight_pref = weight_pref # MORL weights
-        self.wandb_ins = wandb_instance # for passing values to wandb when wandb is initilized in coadapt class # MORL
+        #self.wandb_ins = wandb_instance # for passing values to wandb when wandb is initilized in coadapt class # MORL
         
         self.env = env
         self.policy = policy
@@ -118,12 +118,12 @@ class SACTrainer(TorchTrainer):
             alpha_loss = 0
             alpha = self._alpha
 
-        q_new_actions = torch.min(
+        q_new_actions = torch.min( 
             self.qf1(obs, new_obs_actions),
             self.qf2(obs, new_obs_actions),
-        )
-        policy_loss = (alpha*log_pi - q_new_actions).mean()
-
+        ) # scalarize with weights
+        #policy_loss = (alpha*log_pi - q_new_actions).mean()
+        policy_loss = (alpha*log_pi - torch.matmul(q_new_actions, self.weight_pref).to("cuda")).mean()
         """
         QF Loss
         """
@@ -136,16 +136,17 @@ class SACTrainer(TorchTrainer):
         target_q_values = torch.min(
             self.target_qf1(next_obs, new_next_actions),
             self.target_qf2(next_obs, new_next_actions),
-        ) - alpha * new_log_pi
+        ) - alpha * new_log_pi 
 
         #w = self.weight_pref.repeat(int(len(rewards)/2), 1).to("cuda")
         # SORL #q_target = self.reward_scale * rewards + (1. - terminals) * self.discount * target_q_values 
-        #q_target = self.reward_scale * rewards + (1. - terminals) * self.discount * target_q_values 
-        q_target = self.reward_scale * torch.matmul(rewards, self.weight_pref).to("cuda") + (1. - terminals) * self.discount * target_q_values            ##ugly fix???#
+        q_target = self.reward_scale * rewards + (1. - terminals) * self.discount * target_q_values 
+        #q_target = self.reward_scale * torch.matmul(rewards, self.weight_pref).to("cuda") + (1. - terminals) * self.discount * target_q_values            ##ugly fix???#
+        # Remember to take any matmul from rewards, they are not scalarized
         #q_target = self.reward_scale * torch.multiply(rewards, w) + (1. - terminals) * self.discount * target_q_values # torch.multiply(rewards, self.weight_pref.repeat(len(rewards), 1)) + (1. - terminals) * self.discount * target_q_values  #torch.multiply(rewards, self.weight_pref)
         #q_target = np.dot(q_target, self.weight_pref) # MORL weights # ERROR  # ADDED
         
-        qf1_loss = self.qf_criterion(q1_pred, q_target.detach())
+        qf1_loss = self.qf_criterion(q1_pred, q_target.detach()) # MSE loss is automaticly scalarize the loss between vectors
         qf2_loss = self.qf_criterion(q2_pred, q_target.detach())
 
         """
@@ -218,7 +219,7 @@ class SACTrainer(TorchTrainer):
                 self.eval_statistics['Alpha'] = alpha.item()
                 self.eval_statistics['Alpha Loss'] = alpha_loss.item()        
         #Track losses to wandb
-        self.wandb_ins.log({"QF1 loss" :self.eval_statistics['QF1 Loss'], "QF2 loss" :self.eval_statistics['QF2 Loss'], "Policy loss": self.eval_statistics['Policy Loss']}) # MORL wandb tracking
+        #self.wandb_ins.log({"QF1 loss" :self.eval_statistics['QF1 Loss'], "QF2 loss" :self.eval_statistics['QF2 Loss'], "Policy loss": self.eval_statistics['Policy Loss']}) # MORL wandb tracking
         self._n_train_steps_total += 1
 
     def get_diagnostics(self):
