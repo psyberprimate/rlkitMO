@@ -45,7 +45,7 @@ class SACTrainer(TorchTrainer):
     ):
         super().__init__()
         self.weight_pref = weight_pref # MORL weights
-        self.wandb_ins = wandb_instance # for passing values to wandb when wandb is initilized in coadapt class # MORL
+        #self.wandb_ins = wandb_instance # for passing values to wandb when wandb is initilized in coadapt class # MORL # uncomment to track
         
         self.env = env
         self.policy = policy
@@ -218,7 +218,7 @@ class SACTrainer(TorchTrainer):
                 self.eval_statistics['Alpha'] = alpha.item()
                 self.eval_statistics['Alpha Loss'] = alpha_loss.item()        
         #Track losses to wandb
-        self.wandb_ins.log({"QF1 loss" :self.eval_statistics['QF1 Loss'], "QF2 loss" :self.eval_statistics['QF2 Loss'], "Policy loss": self.eval_statistics['Policy Loss']}) # MORL wandb tracking
+        #self.wandb_ins.log({"QF1 loss" :self.eval_statistics['QF1 Loss'], "QF2 loss" :self.eval_statistics['QF2 Loss'], "Policy loss": self.eval_statistics['Policy Loss']}) # MORL wandb tracking , # uncomment to track
         self._n_train_steps_total += 1
 
     def get_diagnostics(self):
