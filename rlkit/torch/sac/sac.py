@@ -22,7 +22,7 @@ class SACTrainer(TorchTrainer):
             target_qf2,
             
             weight_pref, # for MORL
-            wandb_instance, # for MORL
+            wandb_instance, # for MORL # just a dummy value since
 
             discount=0.99,
             reward_scale=1.0,
@@ -43,8 +43,10 @@ class SACTrainer(TorchTrainer):
             #weight_pref = torch.tensor([0.5, 0.5]).reshape(2, 1).to("cuda")# np.array([0.5, 0.5]) # MORL weights # update
             #weight_pref = torch.tensor(weight_pref).reshape(2, 1).to("cuda")
     ):
+    #wandb_instance, # for MORL # just a dummy value since
         super().__init__()
         self.weight_pref = weight_pref # MORL weights
+        
         #self.wandb_ins = wandb_instance # for passing values to wandb when wandb is initilized in coadapt class # MORL
         
         self.env = env
